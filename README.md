@@ -1,70 +1,210 @@
-# Getting Started with Create React App
+# React Quiz App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A dynamic, customizable quiz application built with **React**. This project demonstrates modern React patterns, state management with `useReducer`, component composition, and clean UI/UX—all ideal for showcasing your React skills to recruiters and collaborators.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+- **Customizable Quiz Length:**  
+  Users select the number of questions before starting.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **State Management with `useReducer`:**  
+  All quiz logic and state transitions are handled with a reducer pattern, making the app scalable and maintainable.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Component-Based Architecture:**  
+  The UI is split into reusable, focused components.
 
-### `npm test`
+- **Live Timer:**  
+  Each question has a countdown timer.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Progress & Scoring:**  
+  Real-time progress bar, scoring, and highscore tracking.
 
-### `npm run build`
+- **Error Handling & Loading States:**  
+  Graceful handling of loading and error states.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Technologies Used
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **React** (functional components)
+- **React Hooks** (`useReducer`, `useEffect`)
+- **Fetch API** for data loading
+- **CSS Modules / Custom Styling** (customize as needed)
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 📦 Project Structure
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+  Components/
+    Main-Components/
+      App.js
+    QuestionApp/
+      StartScreen.js
+      FinishScreen.js
+    Questions/
+      Question.js
+    UI-Components/
+      NextButton.js
+      Progress.js
+      Timer.js
+      Footer.js
+    Status-UI-Components/
+      Loader.js
+      Error.js
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🧩 Key Implementation Details
 
-## Learn More
+### 1. State Management with `useReducer`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+All quiz logic is centralized in a reducer, making state transitions explicit and easy to test:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```javascript
+// src/Components/Main-Components/App.js
+const initialState = {
+  questions: [],
+  index: 0,
+  status: "loading", // loading, error, ready, active, finished
+  answer: null,
+  points: 0,
+  highscore: 0,
+  secondsRemaining: null,
+  selectedNumQuestions: 5,
+};
 
-### Code Splitting
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "dataReceived":
+      return { ...state, questions: action.payload, status: "ready" };
+    case "selectNumQuestions":
+      return {
+        ...state,
+        selectedNumQuestions: action.payload,
+        questions: state.questions.slice(0, action.payload),
+      };
+    case "start":
+      return {
+        ...state,
+        status: "active",
+        secondsRemaining: state.selectedNumQuestions * SECS_PER_QUESTION,
+      };
+    // ...other cases...
+    default:
+      throw new Error("Action unknown");
+  }
+};
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 2. Data Fetching with `useEffect`
 
-### Analyzing the Bundle Size
+Questions are loaded from a local server using the Fetch API:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```javascript
+useEffect(() => {
+  const fetchQuestion = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/questions");
+      const data = await res.json();
+      dispatch({ type: "dataReceived", payload: data });
+    } catch (err) {
+      dispatch({ type: "dataFailed" });
+    }
+  };
+  fetchQuestion();
+}, [dispatch]);
+```
 
-### Making a Progressive Web App
+### 3. Component Composition
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+The app is composed of focused, reusable components:
 
-### Advanced Configuration
+```javascript
+return (
+  <div className="App">
+    <Header />
+    <Main>
+      {status === "loading" && <Loader />}
+      {status === "error" && <Error />}
+      {status === "ready" && (
+        <StartScreen
+          selectedNumQuestions={selectedNumQuestions}
+          dispatch={dispatch}
+        />
+      )}
+      {status === "active" && (
+        <>
+          <Progress ... />
+          <Question ... />
+          <Footer>
+            <Timer ... />
+            <NextButton ... />
+          </Footer>
+        </>
+      )}
+      {status === "finished" && (
+        <FinishScreen ... />
+      )}
+    </Main>
+  </div>
+);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 4. Controlled Inputs & UI Patterns
 
-### Deployment
+The number of questions input is controlled and styled, and only allows changes via the stepper arrows:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```javascript
+<input
+  type="number"
+  min={1}
+  max={15}
+  value={selectedNumQuestions}
+  onChange={(e) => {
+    dispatch({ type: "selectNumQuestions", payload: Number(e.target.value) });
+  }}
+  onKeyDown={(e) => e.preventDefault()} // Prevent typing, allow arrows
+/>
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📝 How to Run
+
+1. **Install dependencies:**
+
+   ```sh
+   npm install
+   ```
+
+2. **Start the local server for questions (if required):**
+
+   ```sh
+   npm run server
+   ```
+
+3. **Start the React app:**
+
+   ```sh
+   npm start
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 💡 Why This Project Stands Out
+
+- **Modern React Patterns:** Uses hooks and reducer for robust state management.
+- **Scalable Architecture:** Easy to extend with more features or question types.
+- **User Experience:** Clean, interactive, and responsive UI.
+- **Recruiter-Friendly:** Shows understanding of React fundamentals, async data, and component design.
+
+---
+
+**Feel free to fork, star, or use this as a template for your own quiz projects!**
