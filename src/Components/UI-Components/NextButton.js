@@ -1,6 +1,6 @@
 const NextButton = ({ dispatch, answer, index, numQuestions }) => {
   if (answer === null) return null;
-  if (index < 3 - 1)
+  if (index < numQuestions - 1)
     return (
       <button
         className="btn btn-ui"
@@ -9,7 +9,7 @@ const NextButton = ({ dispatch, answer, index, numQuestions }) => {
         Next
       </button>
     );
-  if (index === 3 - 1)
+  if (index === numQuestions - 1)
     return (
       <button
         className="btn btn-ui"

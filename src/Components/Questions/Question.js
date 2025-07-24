@@ -9,6 +9,12 @@ const Question = ({ question, dispatch, answer }) => {
         dispatch={dispatch}
         answer={answer}
       />
+      {/* <button
+        className="btn btn-ui"
+        onClick={() => dispatch({ type: "reset" })}
+      >
+        Restart
+      </button> */}
     </div>
   );
 };
