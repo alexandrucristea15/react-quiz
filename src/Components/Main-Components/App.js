@@ -22,6 +22,7 @@ const initialState = {
   points: 0,
   highscore: 0,
   secondsRemaining: null,
+  selectedNumQuestions: 5,
 };
 
 const reducer = (state, action) => {
@@ -37,11 +38,17 @@ const reducer = (state, action) => {
         ...state,
         status: "error",
       };
+    case "selectNumQuestions":
+      return {
+        ...state,
+        selectedNumQuestions: action.payload,
+        questions: state.questions.slice(0, action.payload),
+      };
     case "start":
       return {
         ...state,
         status: "active",
-        secondsRemaining: state.questions.length * SECS_PER_QUESTION,
+        secondsRemaining: state.selectedNumQuestions * SECS_PER_QUESTION,
       };
     case "newAnswer":
       const question = state.questions.at(state.index);
@@ -81,7 +88,16 @@ const reducer = (state, action) => {
 
 function App() {
   const [
-    { questions, status, index, answer, points, highscore, secondsRemaining },
+    {
+      selectedNumQuestions,
+      questions,
+      status,
+      index,
+      answer,
+      points,
+      highscore,
+      secondsRemaining,
+    },
     dispatch,
   ] = useReducer(reducer, initialState);
 
@@ -108,7 +124,10 @@ function App() {
         {status === "loading" && <Loader />}
         {status === "error" && <Error />}
         {status === "ready" && (
-          <StartScreen numQuestions={numQuestions} dispatch={dispatch} />
+          <StartScreen
+            selectedNumQuestions={selectedNumQuestions}
+            dispatch={dispatch}
+          />
         )}
         {status === "active" && (
           <>
